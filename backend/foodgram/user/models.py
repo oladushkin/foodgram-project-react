@@ -6,19 +6,19 @@ from django.db import models
 class User(AbstractUser):
     """Модель пользователя"""
     email = models.EmailField(
-        max_lenght=250,
+        max_length=250,
     )
     username = models.CharField(
         max_length=100,
-        validator=[UnicodeUsernameValidator])
+        validators=[UnicodeUsernameValidator])
     first_name = models.CharField(
-        max_lenght=100,
+        max_length=100,
         )
     last_name = models.CharField(
-        max_lenght=100,
+        max_length=100,
     )
     password = models.CharField(
-        max_lenght=100,
+        max_length=100,
     )
 
 
