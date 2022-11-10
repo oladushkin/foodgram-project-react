@@ -1,25 +1,7 @@
-from django.contrib.auth.models import AbstractUser
-from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.contrib.auth import get_user_model
 from django.db import models
 
-
-class User(AbstractUser):
-    """Модель пользователя"""
-    email = models.EmailField(
-        max_length=250,
-    )
-    username = models.CharField(
-        max_length=100,
-        validators=[UnicodeUsernameValidator])
-    first_name = models.CharField(
-        max_length=100,
-        )
-    last_name = models.CharField(
-        max_length=100,
-    )
-    password = models.CharField(
-        max_length=100,
-    )
+User = get_user_model()
 
 
 class Follow(models.Model):
