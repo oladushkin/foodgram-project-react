@@ -10,12 +10,8 @@ class Tag(models.Model):
         max_length=50,
         help_text='Название тега.'
     )
-    сolor = ColorField(
-        default='#FF0000'
-    )
-    slug = models.SlugField(
-        max_length=50,
-    )
+    сolor = ColorField(default='#FF0000')
+    slug = models.SlugField(max_length=50,)
 
     def __str__(self):
         return self.name
@@ -23,12 +19,8 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     """Ингридиенты"""
-    name = models.CharField(
-        max_length=100,
-    )
-    measurement_unit = models.CharField(
-        max_length=20,
-    )
+    name = models.CharField(max_length=100,)
+    measurement_unit = models.CharField(max_length=20,)
 
     def __str__(self):
         return self.name
@@ -43,6 +35,7 @@ class Array(models.Model):
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
+        related_name='ingredient'
     )
     amount = models.IntegerField()
 
@@ -90,16 +83,24 @@ class Recipe(models.Model):
         auto_now_add=True
     )
 
+    class Meta:
+        ordering = ('-pub_date',)
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
+
     def __str__(self):
         return self.name
 
 
 class Favorite(models.Model):
     """Избранные рецепты"""
-    
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+    )
     recipe = models.ForeignKey(
         Recipe,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
     )
 
 
@@ -110,6 +111,17 @@ class TagsRecipes(models.Model):
         on_delete=models.CASCADE,
     )
     recipes = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+    )
+
+
+class ShoppingList(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+    )
+    recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
     )

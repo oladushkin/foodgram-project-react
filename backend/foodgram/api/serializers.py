@@ -1,7 +1,7 @@
 from djoser.serializers import UserSerializer
 from rest_framework import serializers
 from user.models import User
-from recipes.models import Recipe, Ingredient, Tag, Array, TagsRecipes, Favorite
+from recipes.models import Recipe, Ingredient, Tag, Array, TagsRecipes, Favorite, ShoppingList
 import base64
 from django.core.files.base import ContentFile
 
@@ -82,4 +82,15 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Favorite
+        fields = ('recipe')
+
+
+class ShoppingSerializer(serializers.ModelSerializer):
+    recipe = serializers.SlugRelatedField(
+        queryset=Recipe.objects.all(),
+        slug_field='name',
+    )
+
+    class Meta:
+        model = ShoppingList
         fields = ('recipe')
