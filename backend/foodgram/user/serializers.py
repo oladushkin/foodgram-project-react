@@ -17,13 +17,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
-        return Follow.objects.filter(user=user, author=obj.id).exists()
-
-class RegistrationSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = User
-        fields = '__all__'
+        return Follow.objects.filter(user=user, following=obj.id).exists()
 
 
 class FollowSerializer(serializers.ModelSerializer):
