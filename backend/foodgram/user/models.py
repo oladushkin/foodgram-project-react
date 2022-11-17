@@ -17,3 +17,6 @@ class Follow(models.Model):
         related_name='following',
         null=True
     )
+
+    class Meta:
+        unique_together = ('user', 'following')

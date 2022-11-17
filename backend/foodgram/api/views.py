@@ -17,10 +17,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
     """Рецепты"""
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.AllowAny,)
     pagination_class = LimitOffsetPagination
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('tags')
+    filterset_fields = ('tags',)
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)

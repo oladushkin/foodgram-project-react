@@ -1,16 +1,15 @@
-from djoser.serializers import UserSerializer
 from rest_framework import serializers
 from user.models import User
 from recipes.models import Recipe, Ingredient, Tag, Array, TagsRecipes, Favorite, ShoppingList
-import base64
-from django.core.files.base import ContentFile
+from drf_extra_fields.fields import Base64ImageField
+
 
 class IngredientSerializer(serializers.ModelSerializer):
     """Сериализатор ингридиентов"""
     class Meta:
         model = Ingredient
         fields = (
-            'name', 'measurement_unit',
+            'name', 'measurement_unit'
         )
 
 
@@ -18,59 +17,79 @@ class TagSerializer(serializers.ModelSerializer):
     """Сериализатор тегов"""
     class Meta:
         model = Tag
-        fields = (
-            'name', 'color', 'slag',
-        )
-
-
-class Base64ImageField(serializers.ImageField):
-    """Кодировка изображений"""
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            format, imgstr = data.split(';base64,')  
-            ext = format.split('/')[-1]  
-            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
-
-        return super().to_internal_value(data)
+        fields = '__all__'
 
 
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор рецепта"""
-    ingredient = IngredientSerializer(read_only=True, many=True)
+    ingredients = serializers.SerializerMethodField()
     author = serializers.StringRelatedField(read_only=True)
-    tags = TagSerializer(read_only=True, many=True)
-    image = Base64ImageField(required=False, allow_null=True)
+    tags = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    image = Base64ImageField(required=False)
+    is_in_shopping_cart = serializers.SerializerMethodField()
+    is_favorited = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
         fields = (
-            'author', 'ingredient', 'tags',
+            'author', 'ingredients', 'tags',
             'image', 'name', 'text',
-            'cooking_time',
+            'cooking_time', 'is_in_shopping_cart', 'is_favorited',
         )
         read_only_fields = ('author',)
+    
+    def get_ingredients(self, recipe):
+        ingredients = []
+        for ingredient in recipe.ingredients.all():
+            ingredients.append(
+                {
+                    'id': ingredient.pk,
+                    'amount': ingredient.ingredient_recipe.get(
+                        recipe=recipe).amount,
+                    'name': ingredient.name,
+                    'measurement_unit': ingredient.measurement_unit
+                }
+            )
+        return ingredients
+    def to_internal_value(self, data):
+            new_data = super().to_internal_value(data)
+            new_data['ingredients'] = data['ingredients']
+            new_data['tags'] = data['tags']
+            return new_data
 
     def create(self, validated_data):
-        ingrediens = validated_data.pop('ingredient')
+        print(validated_data)
+        ingrediens = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
 
         recipe = Recipe.objects.create(**validated_data)
 
         for ingredient in ingrediens:
-            current_ingredien, status = Ingredient.objects.get_or_create(
-                **ingredient)
             Array.objects.create(
-                ingredient=current_ingredien, recipe=recipe
+                ingredient=ingredient.id,
+                recipe=recipe,
+                amount=ingredient.amount
             )
         for tag in tags:
-            current_tag, status = Tag.objects.get_or_create(
-                **tag
-            )
             TagsRecipes.objects.create(
-                tag=current_tag, recipe=recipe
-            )
-        
+                tag=tag, recipe=recipe
+            )       
         return recipe
+
+    def _get_user(self):
+        return self.context['request'].user
+
+    def get_is_favorited(self, request):
+        user = self._get_user()
+        if user.is_authenticated:
+            return request.favorite_recipe.filter(user=user).exists()
+        return False
+    
+    def get_is_in_shopping_cart(self, request):
+        user = self._get_user()
+        if user.is_authenticated:
+            return request.shopping_recipe.filter(user=user).exists()
+        return False
 
 
 class FavoriteSerializer(serializers.ModelSerializer):

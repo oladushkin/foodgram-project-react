@@ -21,7 +21,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
     def count_in_favorite(self, obj):
         from django.db.models import Count
-        result = Favorite.objects.filter(recipe=obj).aaggregate(Count('recipe'))
+        result = Favorite.objects.filter(recipe=obj).aggregate(Count('recipe'))
         return result['recipe__count']
 
 
