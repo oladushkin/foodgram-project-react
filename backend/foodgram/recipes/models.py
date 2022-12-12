@@ -29,17 +29,17 @@ class Ingredient(models.Model):
         return f'{self.name}, {self.measurement_unit}'
 
 
-class Array(models.Model):
+class Ingredients_Recipe(models.Model):
     """Список ингридиентов в рецепте"""
     recipe = models.ForeignKey(
         'Recipe',
         on_delete=models.CASCADE,
-        related_name='ingredient_recipe'
+        related_name='ingredients_recipe'
     )
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        related_name='ingredient_recipe'
+        related_name='ingredients_recipe'
     )
     amount = models.PositiveIntegerField()
 
@@ -54,7 +54,8 @@ class Recipe(models.Model):
     )
     ingredients = models.ManyToManyField(
         Ingredient,
-        through=Array,
+        through=Ingredients_Recipe,
+        through_fields=('recipe', 'ingredient'),
         related_name='recipe',
         verbose_name='Ингридиенты'
     )
@@ -67,6 +68,7 @@ class Recipe(models.Model):
     image = models.ImageField(
         upload_to='recipe/images/',
         null=True,
+        blank=True,
         default=None
         )
     name = models.CharField(

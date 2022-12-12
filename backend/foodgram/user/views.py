@@ -1,9 +1,10 @@
-from rest_framework import filters, mixins, viewsets
-from .serializers import CustomUserSerializer, FollowSerializer
-from .models import User, Follow
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from djoser.views import UserViewSet
+from rest_framework import filters, mixins, viewsets
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+
+from .models import Follow, User
+from .serializers import CustomUserSerializer, FollowSerializer
 
 
 class UserViewSet(UserViewSet):

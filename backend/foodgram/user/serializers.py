@@ -1,6 +1,7 @@
+from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
-from user.models import User, Follow
 from rest_framework.validators import UniqueTogetherValidator
+from user.models import Follow, User
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -12,12 +13,19 @@ class CustomUserSerializer(serializers.ModelSerializer):
                   'last_name', 'is_subscribed', 'password')
         extra_kwargs = {'password': {'write_only': True}}
 
-
     def get_is_subscribed(self, obj):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
         return Follow.objects.filter(user=user, following=obj.id).exists()
+
+
+class CustomCreateUserSerializer(UserCreateSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'email', 'username', 'first_name',
+                  'last_name', 'password')
+        extra_kwargs = {'password': {'write_only': True}}
 
 
 class FollowSerializer(serializers.ModelSerializer):
