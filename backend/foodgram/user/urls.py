@@ -1,6 +1,7 @@
 from django.urls import include, path, re_path
 from rest_framework.routers import SimpleRouter
-from .views import APIFollowList, UserViewSet, user_registration
+
+from .views import APIFollowList, UserViewSet
 
 app_name = 'users'
 
@@ -15,6 +16,6 @@ router.register(
 )
 urlpatterns = [
     path('', include(router.urls)),
-    re_path('users/', include('djoser.urls')),
+    re_path('', include('djoser.urls')),
     re_path(r'^auth/', include('djoser.urls.authtoken')),
 ]

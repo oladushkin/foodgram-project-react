@@ -22,22 +22,26 @@ class Ingredient(models.Model):
     name = models.CharField(max_length=100,)
     measurement_unit = models.CharField(max_length=20,)
 
+    class Meta:
+        unique_together = ('name', 'measurement_unit')
+
     def __str__(self):
-        return self.name
+        return f'{self.name}, {self.measurement_unit}'
 
 
-class Array(models.Model):
+class Ingredients_Recipe(models.Model):
     """Список ингридиентов в рецепте"""
     recipe = models.ForeignKey(
         'Recipe',
         on_delete=models.CASCADE,
+        related_name='ingredients_recipe'
     )
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        related_name='ingredient'
+        related_name='ingredients_recipe'
     )
-    amount = models.IntegerField()
+    amount = models.PositiveIntegerField()
 
 
 class Recipe(models.Model):
@@ -48,19 +52,23 @@ class Recipe(models.Model):
         related_name='recipe',
         verbose_name='Автор'
     )
-    ingredient = models.ManyToManyField(
+    ingredients = models.ManyToManyField(
         Ingredient,
-        through=Array,
+        through=Ingredients_Recipe,
+        through_fields=('recipe', 'ingredient'),
+        related_name='recipe',
         verbose_name='Ингридиенты'
     )
     tags = models.ManyToManyField(
         Tag,
         through='TagsRecipes',
+        related_name='recipe',
         verbose_name='Тег рецепта'
     )
     image = models.ImageField(
         upload_to='recipe/images/',
         null=True,
+        blank=True,
         default=None
         )
     name = models.CharField(
@@ -71,7 +79,7 @@ class Recipe(models.Model):
         max_length=200,
         verbose_name='Орисание',
     )
-    cooking_time = models.IntegerField(
+    cooking_time = models.PositiveIntegerField(
         validators=(
             MinValueValidator(1),
         ),
@@ -97,11 +105,16 @@ class Favorite(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
+        related_name='favorite_recipe'
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
+        related_name='favorite_recipe'
     )
+
+    class Meta:
+        unique_together = ('user', 'recipe')
 
 
 class TagsRecipes(models.Model):
@@ -109,10 +122,12 @@ class TagsRecipes(models.Model):
     tag = models.ForeignKey(
         Tag,
         on_delete=models.CASCADE,
+        related_name='tags_recipe'
     )
     recipes = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
+        related_name='tags_recipe'
     )
 
 
@@ -120,8 +135,10 @@ class ShoppingList(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
+        related_name='shopping_recipe'
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
+        related_name='shopping_recipe'
     )
