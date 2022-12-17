@@ -2,7 +2,7 @@ import base64
 
 from django.core.files.base import ContentFile
 from recipes.models import (Favorite, Ingredient, Ingredients_Recipe, Recipe,
-                            ShoppingList, Tag)
+                            ShoppingList, Tag, TagsRecipes)
 from rest_framework import serializers
 from user.serializers import CustomUserSerializer
 
@@ -23,6 +23,18 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = '__all__'
+
+
+class TagsRecipesSerializer(serializers.ModelSerializer):
+    id = serializers.SlugRelatedField(
+        queryset=Tag.objects.all(),
+        slug_field='id',
+        source='tag'
+    )
+
+    class Meta:
+        model = TagsRecipes
+        fields = ('id',)
 
 
 class Ingredients_RecipeSerializer(serializers.ModelSerializer):
@@ -50,7 +62,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор рецепта"""
     author = CustomUserSerializer(read_only=True)
     ingredients = serializers.SerializerMethodField()
-    tags = serializers.SerializerMethodField()
+    tags = TagSerializer(many=True)
     image = Base64ImageField(required=False)
     is_in_shopping_cart = serializers.SerializerMethodField()
     is_favorited = serializers.SerializerMethodField()
@@ -77,18 +89,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             )
         return ingredients
 
-    def get_tags(self, recipe):
-        tags = []
-        for tag in recipe.tags.all():
-            tags.append(
-                {
-                    'id': tag.id,
-                    'name': tag.name,
-                    'slug': tag.slug,
-                }
-            )
-        return tags
-
     def _get_user(self):
         return self.context['request'].user
 
@@ -104,8 +104,24 @@ class RecipeSerializer(serializers.ModelSerializer):
             return request.shopping_recipe.filter(user=user).exists()
         return False
 
+
+class POST_RecipeSerializer(serializers.ModelSerializer):
+    author = CustomUserSerializer(read_only=True)
+    ingredients = Ingredients_RecipeSerializer(many=True)
+    image = Base64ImageField(required=False)
+
+    class Meta:
+        model = Recipe
+        fields = (
+            'id', 'author', 'ingredients', 'tags',
+            'image', 'name', 'text',
+            'cooking_time'
+        )
+
+    def _get_user(self):
+        return self.context['request'].user
+
     def create(self, validated_data):
-        print(validated_data)
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         user = self._get_user()
@@ -117,9 +133,11 @@ class RecipeSerializer(serializers.ModelSerializer):
                 recipe=recipe,
                 amount=ingredient['amount']
             )
-        if tags:
-            recipe.tags.clear()
-            recipe.tags.set(tags)
+        for tag in tags:
+            TagsRecipes.objects.create(
+                tag=Tag.objects.get(id=tag),
+                recipes=recipe
+            )
         return recipe
 
     def update(self, recipe, validated_data):
@@ -135,20 +153,16 @@ class RecipeSerializer(serializers.ModelSerializer):
         recipe.save
         for ingredient in ingredients:
             Ingredients_Recipe.objects.create(
-                ingredient=ingredient['id'],
+                ingredient=Ingredient.objects.get(id=ingredient['id']),
                 recipe=recipe,
                 amount=ingredient['amount']
             )
-        if tags:
-            recipe.tags.clear()
-            recipe.tags.set(tags)
+        for tag in tags:
+            TagsRecipes.objects.create(
+                tag=Tag.objects.get(id=tag),
+                recipes=recipe
+            )
         return recipe
-
-    def to_representation(self, recipe):
-        ingredient_data = recipe.ingredients_recipe.all()
-        representation = super().to_representation(recipe)
-        representation.ingredients = ingredient_data
-        return representation
 
     def validate(self, data):
         ingredients = self.initial_data['ingredients']

@@ -9,17 +9,23 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .serializers import (FavoriteSerializer, IngredientSerializer,
-                          RecipeSerializer, ShoppingSerializer, TagSerializer)
+                          RecipeSerializer, POST_RecipeSerializer,
+                          ShoppingSerializer, TagSerializer)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вывод рецептов"""
     queryset = Recipe.objects.all()
-    serializer_class = RecipeSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     pagination_class = LimitOffsetPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('tags',)
+
+    def get_serializer_class(self):
+        if (hasattr(self, 'action') and self.action == 'create') or \
+           self.request.method == 'PATCH':
+            return POST_RecipeSerializer
+        return RecipeSerializer
 
     def perform_update(self, serializer):
         if serializer.instance.author != self.request.user:
@@ -32,7 +38,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         super(RecipeViewSet, self).perform_destroy(instance)
 
 
-class FavoriteViewSet(viewsets.ModelViewSet):
+class FavoriteViewSet(mixins.CreateModelMixin,
+                      mixins.DestroyModelMixin,
+                      viewsets.GenericViewSet):
     """Избранные рецепты"""
     queryset = Favorite.objects.all()
     serializer_class = FavoriteSerializer
@@ -66,7 +74,10 @@ class APIIngredientList(mixins.ListModelMixin,
     serializer_class = IngredientSerializer
 
 
-class APIShopping(viewsets.ModelViewSet):
+class APIShopping(mixins.ListModelMixin,
+                  mixins.CreateModelMixin,
+                  mixins.DestroyModelMixin,
+                  viewsets.GenericViewSet):
     """Список рецептов добавленных в корзину"""
     queryset = ShoppingList.objects.all()
     serializer_class = ShoppingSerializer
