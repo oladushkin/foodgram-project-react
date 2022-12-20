@@ -164,6 +164,15 @@ class POST_RecipeSerializer(serializers.ModelSerializer):
             )
         return recipe
 
+    def to_representation(self, recipe):
+        ingredients_recipe = recipe.ingredients_recipe.all()
+        representation = super().to_representation(recipe)
+        print(representation)
+        representation['ingredients'] = []
+        for ingredient in ingredients_recipe:
+            representation['ingredients'].append(ingredient.ingredient)
+        return representation
+
     def validate(self, data):
         ingredients = self.initial_data['ingredients']
         tags = self.initial_data['tags']
