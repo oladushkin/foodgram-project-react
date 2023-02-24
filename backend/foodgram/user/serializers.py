@@ -1,4 +1,5 @@
 from djoser.serializers import UserCreateSerializer
+from recipes.models import Recipe
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from user.models import Follow, User
@@ -10,7 +11,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'email', 'username', 'first_name',
-                  'last_name', 'is_subscribed', 'password')
+                  'last_name', 'password', 'is_subscribed')
         extra_kwargs = {'password': {'write_only': True}}
 
     def get_is_subscribed(self, obj):
@@ -28,18 +29,46 @@ class CustomCreateUserSerializer(UserCreateSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
 
+class BRIEF_RECIPE(serializers.ModelSerializer):
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
+
+
+class BRIEF_User(serializers.ModelSerializer):
+    is_subscribed = serializers.SerializerMethodField()
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ('id', 'email', 'username', 'first_name',
+                  'last_name', 'recipes', 'is_subscribed', 'recipes_count')
+
+    def get_recipes_count(self, obj):
+        return Recipe.objects.filter(author=obj).count()
+
+    def get_recipes(self, obj):
+        recipes = Recipe.objects.filter(author=obj)
+        list_recipe = []
+        if len(recipes) > 0:
+            for recipe in recipes:
+                list_recipe.append(
+                    {
+                        'id': recipe.id,
+                        'name': recipe.name,
+                        'image': recipe.image,
+                        'cooking_time': recipe.cooking_time
+                    }
+                )
+        return list_recipe
+
+    def get_is_subscribed(self, obj):
+        return True
+
+
 class FollowSerializer(serializers.ModelSerializer):
     """Сериализатор подписчиков"""
-    user = serializers.SlugRelatedField(
-        queryset=User.objects.all(),
-        default=serializers.CurrentUserDefault(),
-        slug_field='username',
-    )
-    following = serializers.SlugRelatedField(
-        queryset=User.objects.all(),
-        slug_field='username',
-    )
-
     class Meta:
         validators = [
             UniqueTogetherValidator(
@@ -48,7 +77,7 @@ class FollowSerializer(serializers.ModelSerializer):
             ),
         ]
         model = Follow
-        fields = ('user', 'following')
+        fields = ('user', 'following',)
 
     def validate(self, data):
         if data.get('user') == data.get('following'):

@@ -1,15 +1,16 @@
 from django.core.exceptions import PermissionDenied
+from django.db.models import Exists, OuterRef
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
 from recipes.models import Favorite, Ingredient, Recipe, ShoppingList, Tag
-from rest_framework import mixins, permissions, status, viewsets
+from rest_framework import filters, mixins, permissions, status, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .filters import RecipeFilter
 from .serializers import (FavoriteSerializer, IngredientSerializer,
-                          RecipeSerializer, POST_RecipeSerializer,
+                          POST_RecipeSerializer, RecipeSerializer,
                           ShoppingSerializer, TagSerializer)
 
 
@@ -18,14 +19,26 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     pagination_class = LimitOffsetPagination
-    filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('tags',)
+    filterset_class = RecipeFilter
+
+    def get_queryset(self):
+        return Recipe.objects.annotate(
+            is_favorited=Exists(
+                Favorite.objects.filter(
+                    user=self.request.user, recipe=OuterRef('id'))),
+            is_in_shopping_cart=Exists(
+                ShoppingList.objects.filter(
+                    user=self.request.user,
+                    recipe=OuterRef('id'))))
 
     def get_serializer_class(self):
         if (hasattr(self, 'action') and self.action == 'create') or \
            self.request.method == 'PATCH':
             return POST_RecipeSerializer
         return RecipeSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
     def perform_update(self, serializer):
         if serializer.instance.author != self.request.user:
@@ -53,7 +66,11 @@ class FavoriteViewSet(mixins.CreateModelMixin,
     def delete(self, request, recipe_id):
         recipe = get_object_or_404(Recipe, pk=recipe_id)
         user = request.user
-        favorite = get_object_or_404(Favorite, recipe=recipe.id, user=user.id)
+        favorite = get_object_or_404(
+            Favorite,
+            recipe=recipe.id,
+            user=user.id
+        )
         favorite.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -72,10 +89,11 @@ class APIIngredientList(mixins.ListModelMixin,
     """Ингридиенты"""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    filter_backends = (filters.SearchFilter, )
+    search_fields = ('^name', )
 
 
-class APIShopping(mixins.ListModelMixin,
-                  mixins.CreateModelMixin,
+class APIShopping(mixins.CreateModelMixin,
                   mixins.DestroyModelMixin,
                   viewsets.GenericViewSet):
     """Список рецептов добавленных в корзину"""
@@ -108,6 +126,7 @@ class DownloadShoppingCartView(APIView):
         for shopp in shopping_list:
             recipe = get_object_or_404(Recipe, pk=shopp.recipe.id)
             ingredients = recipe.ingredients_recipe.all()
+            print(ingredients)
             for ingredient in ingredients:
                 name = ingredient.ingredient.name
                 if name in shop_list.keys():
