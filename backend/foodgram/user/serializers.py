@@ -36,6 +36,7 @@ class BRIEF_RECIPE(serializers.ModelSerializer):
 
 
 class BRIEF_User(serializers.ModelSerializer):
+    """Отображение подписок"""
     is_subscribed = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()

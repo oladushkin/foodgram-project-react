@@ -22,6 +22,7 @@ class UserViewSet(UserViewSet):
 @api_view(['GET', ])
 @permission_classes([IsAuthenticated, ])
 def follow_list(request):
+    """Вывод подписок"""
     paginator = FollowPaginator()
     user = request.user
     followers = Follow.objects.filter(user=user)
@@ -41,6 +42,7 @@ def follow_list(request):
 @api_view(['POST', 'DELETE'])
 @permission_classes([IsAuthenticated, ])
 def api_follow(request, user_id):
+    """Создание и удаление подписок"""
     following = get_object_or_404(User, pk=user_id)
     user = request.user
     data_follow = {'following': user_id, 'user': user.id}

@@ -1,5 +1,4 @@
-import base64
-
+from drf_extra_fields.fields import Base64ImageField
 from django.core.files.base import ContentFile
 from recipes.models import (Favorite, Ingredient, Ingredients_Recipe, Recipe,
                             ShoppingList, Tag, TagsRecipes)
@@ -37,25 +36,18 @@ class TagsRecipesSerializer(serializers.ModelSerializer):
         fields = ('id',)
 
 
-class Base64ImageField(serializers.ImageField):
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            format, imgstr = data.split(';base64,')
-            ext = format.split('/')[-1]
-            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
-        return super().to_internal_value(data)
-
-
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор рецепта"""
     author = CustomUserSerializer(read_only=True)
     ingredients = serializers.SerializerMethodField()
     tags = TagSerializer(many=True)
-    image = Base64ImageField(required=False)
+    image = Base64ImageField()
     is_favorited = serializers.BooleanField(
-        read_only=True)
+        read_only=True
+    )
     is_in_shopping_cart = serializers.BooleanField(
-        read_only=True)
+        read_only=True
+    )
 
     class Meta:
         model = Recipe
@@ -93,7 +85,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 class POST_RecipeSerializer(serializers.ModelSerializer):
     author = CustomUserSerializer(read_only=True)
-    image = Base64ImageField(required=False)
+    image = Base64ImageField()
 
     class Meta:
         model = Recipe
