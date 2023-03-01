@@ -22,14 +22,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeFilter
 
     def get_queryset(self):
-        return Recipe.objects.annotate(
-            is_favorited=Exists(
-                Favorite.objects.filter(
-                    user=self.request.user, recipe=OuterRef('id'))),
-            is_in_shopping_cart=Exists(
-                ShoppingList.objects.filter(
-                    user=self.request.user,
-                    recipe=OuterRef('id'))))
+        if self.request.user.is_authenticated:
+            return Recipe.objects.annotate(
+                is_favorited=Exists(
+                    Favorite.objects.filter(
+                        user=self.request.user, recipe=OuterRef('id'))),
+                is_in_shopping_cart=Exists(
+                    ShoppingList.objects.filter(
+                        user=self.request.user,
+                        recipe=OuterRef('id'))))
 
     def get_serializer_class(self):
         if (hasattr(self, 'action') and self.action == 'create') or \

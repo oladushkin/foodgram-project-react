@@ -1,5 +1,4 @@
 from drf_extra_fields.fields import Base64ImageField
-from django.core.files.base import ContentFile
 from recipes.models import (Favorite, Ingredient, Ingredients_Recipe, Recipe,
                             ShoppingList, Tag, TagsRecipes)
 from rest_framework import serializers
@@ -41,12 +40,13 @@ class RecipeSerializer(serializers.ModelSerializer):
     author = CustomUserSerializer(read_only=True)
     ingredients = serializers.SerializerMethodField()
     tags = TagSerializer(many=True)
-    image = Base64ImageField()
     is_favorited = serializers.BooleanField(
-        read_only=True
+        read_only=True,
+        default=False
     )
     is_in_shopping_cart = serializers.BooleanField(
-        read_only=True
+        read_only=True,
+        default=False
     )
 
     class Meta:
@@ -67,25 +67,10 @@ class RecipeSerializer(serializers.ModelSerializer):
             )
         return ingredients
 
-    def _get_user(self):
-        return self.context['request'].user
-
-    def get_is_favorited(self, request):
-        user = self._get_user()
-        if user.is_authenticated:
-            return request.favorite_recipe.filter(user=user).exists()
-        return False
-
-    def get_is_in_shopping_cart(self, request):
-        user = self._get_user()
-        if user.is_authenticated:
-            return request.shopping_recipe.filter(user=user).exists()
-        return False
-
 
 class POST_RecipeSerializer(serializers.ModelSerializer):
     author = CustomUserSerializer(read_only=True)
-    image = Base64ImageField()
+    image = Base64ImageField(required=False)
 
     class Meta:
         model = Recipe

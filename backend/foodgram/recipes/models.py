@@ -65,11 +65,10 @@ class Recipe(models.Model):
         verbose_name='Тег рецепта'
     )
     image = models.ImageField(
-        upload_to='recipe/images/',
-        null=True,
-        blank=True,
-        default=None
-        )
+        upload_to='cats/images/',
+        null=False,
+        blank=False,
+    )
     name = models.CharField(
         max_length=200,
         verbose_name='Название рецепта',

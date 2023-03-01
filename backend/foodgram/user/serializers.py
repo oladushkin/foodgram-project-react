@@ -58,7 +58,7 @@ class BRIEF_User(serializers.ModelSerializer):
                     {
                         'id': recipe.id,
                         'name': recipe.name,
-                        'image': recipe.image,
+                        'image': recipe.image.url,
                         'cooking_time': recipe.cooking_time
                     }
                 )
