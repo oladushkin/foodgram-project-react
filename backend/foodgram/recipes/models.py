@@ -10,7 +10,7 @@ class Tag(models.Model):
         max_length=50,
         help_text='Название тега.'
     )
-    сolor = ColorField(default='#FF0000')
+    сolor = ColorField()
     slug = models.SlugField(max_length=50,)
 
     def __str__(self):
@@ -65,7 +65,7 @@ class Recipe(models.Model):
         verbose_name='Тег рецепта'
     )
     image = models.ImageField(
-        upload_to='cats/images/',
+        upload_to='recipe/images/',
         null=False,
         blank=False,
     )

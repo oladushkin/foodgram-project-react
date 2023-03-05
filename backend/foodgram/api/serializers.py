@@ -126,7 +126,8 @@ class POST_RecipeSerializer(serializers.ModelSerializer):
         tags = self.initial_data.get('tags')
         validate_ingredient(ingredients)
         validate_tags(tags)
-        data = self.initial_data
+        data['ingredients'] = ingredients
+        data['tags'] = tags
         return data
 
 
