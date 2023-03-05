@@ -3,7 +3,7 @@ from django.db.models import Exists, OuterRef
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from recipes.models import Favorite, Ingredient, Recipe, ShoppingList, Tag
-from rest_framework import filters, mixins, permissions, status, viewsets
+from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -90,8 +90,13 @@ class APIIngredientList(mixins.ListModelMixin,
     """Ингридиенты"""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    filter_backends = (filters.SearchFilter, )
-    search_fields = ('^name', )
+
+    def get_queryset(self):
+        queryset = Ingredient.objects.all()
+        name = self.request.query_params.get('name')
+        if name is not None:
+            queryset = queryset.filter(name__startswith=name)
+        return queryset
 
 
 class APIShopping(mixins.CreateModelMixin,
@@ -137,7 +142,7 @@ class DownloadShoppingCartView(APIView):
                         'amount': ingredient.amount,
                         'measurement_unit':
                         ingredient.ingredient.measurement_unit
-                        }
+                    }
 
         lines = []
         for line in shop_list.keys():
@@ -162,4 +167,4 @@ class DownloadShoppingCartView(APIView):
             buffer,
             as_attachment=True,
             filename='shop_list.txt'
-            )
+        )
