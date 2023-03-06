@@ -94,11 +94,11 @@ class APIIngredientList(mixins.ListModelMixin,
     serializer_class = IngredientSerializer
 
     def get_queryset(self):
-        queryset = Ingredient.objects.all()
         name = self.request.query_params.get('name')
         if name is not None:
-            queryset = queryset.filter(name__startswith=name)
-        return queryset
+            queryset = Ingredient.objects.all().filter(name__startswith=name)
+            return queryset
+        return Ingredient.objects.all()
 
 
 class APIShopping(mixins.CreateModelMixin,
