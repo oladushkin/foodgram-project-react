@@ -96,8 +96,7 @@ class APIIngredientList(mixins.ListModelMixin,
     def get_queryset(self):
         name = self.request.query_params.get('name')
         if name is not None:
-            queryset = Ingredient.objects.all().filter(name__startswith=name)
-            return queryset
+            return Ingredient.objects.all().filter(name__startswith=name)
         return Ingredient.objects.all()
 
 
