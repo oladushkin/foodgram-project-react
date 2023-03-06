@@ -1,5 +1,5 @@
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import (Favorite, Ingredient, Ingredients_Recipe, Recipe,
+from recipes.models import (Favorite, Ingredient, IngredientsRecipe, Recipe,
                             ShoppingList, Tag, TagsRecipes)
 from rest_framework import serializers
 from user.serializers import CustomUserSerializer
@@ -68,7 +68,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         return ingredients
 
 
-class POST_RecipeSerializer(serializers.ModelSerializer):
+class POSTRecipeSerializer(serializers.ModelSerializer):
     author = CustomUserSerializer(read_only=True)
     image = Base64ImageField(required=False)
 
@@ -90,7 +90,7 @@ class POST_RecipeSerializer(serializers.ModelSerializer):
         for i in ingredients:
             ingredient = Ingredient.objects.get(id=i.get('id'))
             amount = i.get('amount')
-            ingredient_recipe, _ = Ingredients_Recipe.objects.get_or_create(
+            ingredient_recipe, _ = IngredientsRecipe.objects.get_or_create(
                 recipe=recipe,
                 ingredient=ingredient,
                 amount=amount
@@ -131,7 +131,7 @@ class POST_RecipeSerializer(serializers.ModelSerializer):
         return data
 
 
-class BRIEF_RECIPE(serializers.ModelSerializer):
+class BriefRecipe(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
@@ -139,7 +139,7 @@ class BRIEF_RECIPE(serializers.ModelSerializer):
 
 class FavoriteSerializer(serializers.ModelSerializer):
     """Сериализатор для избранных рецептов"""
-    recipe = BRIEF_RECIPE(
+    recipe = BriefRecipe(
         read_only=True
     )
 
@@ -149,7 +149,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
 
 class ShoppingSerializer(serializers.ModelSerializer):
-    recipe = BRIEF_RECIPE(
+    recipe = BriefRecipe(
         read_only=True
     )
 

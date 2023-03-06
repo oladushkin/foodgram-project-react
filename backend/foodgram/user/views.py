@@ -2,14 +2,14 @@ from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from .paginator import FollowPaginator
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 
 from .models import Follow, User
-from .serializers import BRIEF_User, CustomUserSerializer, FollowSerializer
+from .paginator import FollowPaginator
+from .serializers import BriefUser, CustomUserSerializer, FollowSerializer
 
 
 class UserViewSet(UserViewSet):
@@ -30,7 +30,7 @@ def follow_list(request):
     for follower in followers:
         foll_prof.append(follower.following)
     result_page = paginator.paginate_queryset(foll_prof, request)
-    serializer = BRIEF_User(
+    serializer = BriefUser(
         result_page,
         many=True,
         context={'request': request}

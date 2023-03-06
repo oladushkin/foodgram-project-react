@@ -29,13 +29,7 @@ class CustomCreateUserSerializer(UserCreateSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
 
-class BRIEF_RECIPE(serializers.ModelSerializer):
-    class Meta:
-        model = Recipe
-        fields = ('id', 'name', 'image', 'cooking_time')
-
-
-class BRIEF_User(serializers.ModelSerializer):
+class BriefUser(serializers.ModelSerializer):
     """Отображение подписок"""
     is_subscribed = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()

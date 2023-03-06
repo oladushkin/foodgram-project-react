@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 
 from .filters import RecipeFilter
 from .serializers import (FavoriteSerializer, IngredientSerializer,
-                          POST_RecipeSerializer, RecipeSerializer,
+                          POSTRecipeSerializer, RecipeSerializer,
                           ShoppingSerializer, TagSerializer)
 
 
@@ -33,9 +33,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
                         recipe=OuterRef('id'))))
 
     def get_serializer_class(self):
-        if (hasattr(self, 'action') and self.action == 'create') or \
-           self.request.method == 'PATCH':
-            return POST_RecipeSerializer
+        if (
+            (hasattr(self, 'action') and self.action == 'create')
+            or self.request.method == 'PATCH'
+        ):
+            return POSTRecipeSerializer
         return RecipeSerializer
 
     def perform_create(self, serializer):

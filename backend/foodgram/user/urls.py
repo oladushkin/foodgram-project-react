@@ -1,7 +1,7 @@
 from django.urls import include, path, re_path
 from rest_framework.routers import SimpleRouter
 
-from .views import follow_list, api_follow, UserViewSet
+from .views import UserViewSet, api_follow, follow_list
 
 app_name = 'users'
 

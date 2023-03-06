@@ -40,7 +40,10 @@ class RecipeFilter(filters.FilterSet):
     is_favorited = filters.BooleanFilter(
         widget=filters.widgets.BooleanWidget(), label='В избранных.'
     )
-    tags = filters.AllValuesMultipleFilter(field_name='tags__slug', label='Ссылка')
+    tags = filters.AllValuesMultipleFilter(
+        field_name='tags__slug',
+        label='Ссылка'
+    )
 
     class Meta:
         model = Recipe
