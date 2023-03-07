@@ -9,8 +9,7 @@ services:
       - ./.env
 
   web:
-    build:
-      image: oladushkin/foodgram_backend:latest
+    image: oladushkin/foodgram_backend:latest
     restart: always
     volumes:
       - static_value:/app/static/
@@ -21,8 +20,7 @@ services:
       - ./.env
 
   frontend:
-    build:
-      image: oladushkin/foodgram_frontend:latest
+    image: oladushkin/foodgram_frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
 
