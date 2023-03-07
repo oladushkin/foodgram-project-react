@@ -13,6 +13,6 @@ class Command(BaseCommand):
             for tag in data:
                 Tag.objects.create(
                     name=tag['name'],
-                    сolor=tag['color'],
+                    color=tag['color'],
                     slug=tag['slug']
                 )
