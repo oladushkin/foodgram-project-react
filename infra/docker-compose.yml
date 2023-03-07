@@ -1,4 +1,4 @@
-version: '3.3'
+version: '3.8'
 services:
 
   db:
@@ -15,8 +15,7 @@ services:
       - static_value:/app/static/
       - media_value:/app/media/
     depends_on:
-      - db:
-          condition: service_healthy
+      - db
     env_file:
       - ./.env
 
