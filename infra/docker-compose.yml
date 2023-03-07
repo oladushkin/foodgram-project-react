@@ -10,7 +10,7 @@ services:
 
   web:
     build:
-      context: oladushkin/foodgram:v2.1
+      context: ../backend/foodgram
       dockerfile: Dockerfile
     restart: always
     volumes:
