@@ -10,6 +10,11 @@ def validate_ingredient(ingredients):
         )
     for ingredient in ingredients:
         list_id_ingredient.append(ingredient['id'])
+        if int(ingredient['amount']) <= 0:
+            raise serializers.ValidationError(
+                (f'Колличество не может быть отрицательным или равно нулю: '
+                 f'{ingredient["amount"]}')
+            )
         try:
             Ingredient.objects.get(id=ingredient['id'])
         except serializers.ValidationError:

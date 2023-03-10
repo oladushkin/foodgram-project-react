@@ -4,11 +4,11 @@ from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from recipes.models import Favorite, Ingredient, Recipe, ShoppingList, Tag
 from rest_framework import mixins, permissions, status, viewsets
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .filters import RecipeFilter
+from .paginator import RecipePaginator
 from .serializers import (FavoriteSerializer, IngredientSerializer,
                           POSTRecipeSerializer, RecipeSerializer,
                           ShoppingSerializer, TagSerializer)
@@ -18,7 +18,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     """Вывод рецептов"""
     queryset = Recipe.objects.all()
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    pagination_class = LimitOffsetPagination
+    pagination_class = RecipePaginator
     filterset_class = RecipeFilter
 
     def get_queryset(self):
